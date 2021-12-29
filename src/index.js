@@ -1,17 +1,84 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.css';
-import App from './App';
-import reportWebVitals from './reportWebVitals';
+import React, { useCallback, useEffect, useState } from "react";
+import ReactDOM from "react-dom";
+import "./index.css";
+import App from "./App";
+import reportWebVitals from './reportWebVitals';import {
+  ApolloClient,
+  InMemoryCache,
+  ApolloProvider,
+  makeVar,
+  createHttpLink,
+} from "@apollo/client";
+import { setContext } from "@apollo/client/link/context";
+import { Auth0Provider, useAuth0 } from "@auth0/auth0-react";
+
+export const starredVar = makeVar([]);
+
+const AppWithApollo = () => {
+  const [accessToken, setAccessToken] = useState();
+  const { getAccessTokenSilently } = useAuth0();
+
+  const getAccessToken = useCallback(async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      setAccessToken(token);
+    } catch (err) {
+    }
+  }, [getAccessTokenSilently]);
+
+  useEffect(() => {
+    getAccessToken();
+  }, [getAccessToken]);
+
+  const httpLink = createHttpLink({
+    uri: "http://localhost:4000/",
+  });
+
+  const authLink = setContext((_, { headers }) => {
+    return {
+      headers: {
+        ...headers,
+        authorization: accessToken ? `Bearer ${accessToken}` : "",
+      },
+    };
+  });
+
+  const client = new ApolloClient({
+    link: authLink.concat(httpLink),
+    cache: new InMemoryCache({
+      typePolicies: {
+        Business: {
+          fields: {
+            isStarred: {
+              read(_, { readField }) {
+                return starredVar().includes(readField("businessId"));
+              },
+            },
+          },
+        },
+      },
+    }),
+  });
+
+  return (
+    <ApolloProvider client={client}>
+      <App />
+    </ApolloProvider>
+  );
+};
 
 ReactDOM.render(
   <React.StrictMode>
-    <App />
+    <Auth0Provider
+      domain="grandstack.auth0.com"
+      clientId="4xw3K3cjvw0hyT4Mjp4RuOVSxvVYcOFF"
+      redirectUri={window.location.origin}
+      audience="https://reviews.grandstack.io"
+    >
+      <AppWithApollo />
+    </Auth0Provider>
   </React.StrictMode>,
-  document.getElementById('root')
+  document.getElementById("root")
 );
 
-// If you want to start measuring performance in your app, pass a function
-// to log results (for example: reportWebVitals(console.log))
-// or send to an analytics endpoint. Learn more: https://bit.ly/CRA-vitals
 reportWebVitals();
