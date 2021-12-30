@@ -31,7 +31,7 @@ const AppWithApollo = () => {
   }, [getAccessToken]);
 
   const httpLink = createHttpLink({
-    uri: process.env.REACT_APP_GRAPHQL_URI,
+    uri: 'http://localhost:4000',
   });
 
   const authLink = setContext((_, { headers }) => {
