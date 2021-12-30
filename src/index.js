@@ -31,7 +31,7 @@ const AppWithApollo = () => {
   }, [getAccessToken]);
 
   const httpLink = createHttpLink({
-    uri: "http://localhost:4000/",
+    uri: 'http://localhost:4000',
   });
 
   const authLink = setContext((_, { headers }) => {
@@ -70,8 +70,8 @@ const AppWithApollo = () => {
 ReactDOM.render(
   <React.StrictMode>
     <Auth0Provider
-      domain="grandstack.auth0.com"
-      clientId="4xw3K3cjvw0hyT4Mjp4RuOVSxvVYcOFF"
+      domain="dev-vw-ggxr3.us.auth0.com"
+      clientId="eB9YChBd3eRXkKHjU3fwd8nmNIqDPS2q"
       redirectUri={window.location.origin}
       audience="https://reviews.grandstack.io"
     >
